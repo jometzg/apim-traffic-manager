@@ -1,1 +1,2 @@
-# apim-traffic-manager
+# Azure API Management with Azure Traffic Manager
+
