@@ -54,8 +54,21 @@ In the above, I have a single instance in North Europe for this scenario. This c
 ### So, what do we have now?
 We have a multi-region APIM instance where the main URL https://jjapimtest.azure-api.net will direct traffic to either of the locations - North Europe or West Europe depending on where the client is. This is fine for most scenarios, but not for ours where we want in normal circumstances to direct traffic to West Europe - the one with 2 instances in different availability zones - so should be more reliable than a single instance in the other zone. But overall cheaper that 4 instances.
 
-To do this we now need to add traffic manager
+To do this we now need to add and configure traffic manager.
 
 ## Add a new Traffic Manager Profile
+Traffic manager is a separate service that works at the DNS or network layer 4 level. It needs to be created and configured to point to each of the regions that API Management is now configued to be in.
+
+![alt text](images/apim-tm-overivew.png "Traffic manager overview")
+
+![alt text](images/apim-tm-configuration.png "Traffic manager configuration")
+
+![alt text](images/apim-tm-endpoints-overview.png "Traffic manager endpoints overview")
+
+![alt text](images/apim-tm-primary-endpoint.png "Traffic manager primary endpoint")
+
+![alt text](images/apim-tm-secondary-endpoint.png "Traffic manager secondary endpoint")
+
+![alt text](images/apim-tm-overview-configured.png "Traffic manager overview conmfigured")
 
 
