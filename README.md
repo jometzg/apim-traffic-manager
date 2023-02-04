@@ -69,12 +69,59 @@ Now we need to configure how traffic manager will [route requests](https://learn
 
 In the above, we have configured a low 60 second DNS time to live (TTL). The most important steps are to configure how traffic manager knows the target endpoint is *alive*. This is done by sending an HTTP(S) request to a path and expecting a response. With a service that is not authenticated, an HTTP OK or 200 is the best choice, but for an API that may need to be authenticated, I have chosen getting some 400 series responses - it is best to work with the path and the configuration of API Management to make sure that traffic manager's probes are successful - otherwise it will chose another endpoint - in this case lower in the priority order.
 
-![alt text](images/apim-tm-endpoints-overview.png "Traffic manager endpoints overview")
+Now to the interesting part. Configuration of the endpoints. In our use case these need to point to the West Europe region instance of the APIM gateway for the priority 1 endpoint and to the north europe gateway for the priority 2 endpoint. See below:
 
 ![alt text](images/apim-tm-primary-endpoint.png "Traffic manager primary endpoint")
 
 ![alt text](images/apim-tm-secondary-endpoint.png "Traffic manager secondary endpoint")
 
+As can be seen above, the form of the URLs follows a specific pattern of *https://<service-name>-<region>-01.regional.azure-api.net*  this is specificied in the [documentation](https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-deploy-multi-region#-use-custom-routing-to-api-management-regional-gateways). In our case the URLs are:
+  1. Priority 1 - jjapimtest-westeurope-01.regional.azure-api.net
+  2. Priority 2 - jjapimtest-northeurope-01.regional.azure-api.net
+
+ Once configured, the traffic manager should look similar to below:
+  
 ![alt text](images/apim-tm-overview-configured.png "Traffic manager overview conmfigured")
 
+It is important that the endpoints are marked as *Online* or the priority routing will not be successful.
+  
+## Testing this out
+API Management includes an echo endpoint, so we can use it to test the routing of requests. I have used the [REST client extension](https://marketplace.visualstudio.com/items?itemName=humao.rest-client) in Visual Studio Code to test each of the endpoints.
+  
+ ```
+@apiminstance = <yout-apim-name>
+@apimkey = <echo-apim-subscription-key>
+@tminstance = <your-traffic-manager-name>
+  
+### echo to main APIM URL
+GET https://{{apiminstance}}.azure-api.net/echo/resource?param1=sample HTTP/1.1
+Ocp-Apim-Subscription-Key: {{apimkey}}
 
+### echo to traffic manager
+GET https://{{tminstance}}.trafficmanager.net/echo/resource?param1=sample HTTP/1.1
+Ocp-Apim-Subscription-Key: {{apimkey}}
+
+### echo in west europe region directly
+GET https://{{apiminstance}}-westeurope-01.regional.azure-api.net/echo/resource?param1=sample HTTP/1.1
+Ocp-Apim-Subscription-Key: {{apimkey}}
+
+
+### echo in north europe region directly
+GET https://{{apiminstance}}-northeurope-01.regional.azure-api.net/echo/resource?param1=sample HTTP/1.1
+Ocp-Apim-Subscription-Key: {{apimkey}}
+  ```
+To fully understand the routing, it may be good to have and API configured in APIM that somehow returns the region of the APIM gateway - there may even be some policy expression to do this. This way you could validate to which gateway requests are being sent. Alternatively, just the use of nslookup on the traffic manager endpoint could be enough
+  
+ ```
+ >nslookup jjtest.trafficmanager.net
+Server:  dns.google
+Address:  8.8.8.8
+
+Non-authoritative answer:
+Name:    api66f1669e87944e9ab997356a095cc1cadhfk3l46huogggcfkbzwo.westeurope.cloudapp.azure.com
+Address:  20.31.208.77
+Aliases:  jjtest.trafficmanager.net
+          jjapimtest-westeurope-01.regional.azure-api.net 
+ ```
+  
+# Summary
