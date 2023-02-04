@@ -125,3 +125,4 @@ Aliases:  jjtest.trafficmanager.net
  ```
   
 # Summary
+The use of multi-region API Management alongside a Traffic Manager profile allows greater control of how requests are routed to a multi-region API Management instance. This requires careful configuration of traffic manager to make sure its health-check probes get successul responses from each of the regional APIM gateways.
