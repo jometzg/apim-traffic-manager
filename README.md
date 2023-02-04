@@ -33,5 +33,29 @@ In this scenario, there is no single point of failure in the primary region and 
 This will require a separate instance of traffic manager to be deployed and configured to work with API Management.
 
 ## API Management Configuration
+Firstly, API Management needs to be configured as a premium SKU. Looking at the overview of APIM, it should look something like:
+
+![alt text](images/apim-premium-config.png "APIM Overview")
+
+As can be seen above, this API Management instance has the name *jjapimtest* and so its URL is https://jjapimtest.azure-api.net - yours will be different.
+
+To configure multi-region, look for the *Locations* section in the portal, this should initially have one location with one instance in the same region as your APIM instance was created. In my case this is *West Europe*
+
+Now amend the primary location to have more than one instance. Ideally choose the instances to be in different availability zones:
+
+![alt text](images/apim-zones.png "APIM Availabilty zones")
+
+Now add a new location. This can be anywhere. In my case I have chosen *North Europe* and a single instance.
+
+![alt text](images/apim-locations-config.png "APIM locations")
+
+In the above, I have a single instance in North Europe for this scenario. This could have 2 instances like the primary one - if we wanted to direct traffic to both. But for this use case, we want to keep this as a DR instance and keep costs under control by configuring it to have a single instance.
+
+### So, what do we have now?
+We have a multi-region APIM instance where the main URL https://jjapimtest.azure-api.net will direct traffic to either of the locations - North Europe or West Europe depending on where the client is. This is fine for most scenarios, but not for ours where we want in normal circumstances to direct traffic to West Europe - the one with 2 instances in different availability zones - so should be more reliable than a single instance in the other zone. But overall cheaper that 4 instances.
+
+To do this we now need to add traffic manager
+
+## Add a new Traffic Manager Profile
 
 
