@@ -59,9 +59,15 @@ To do this we now need to add and configure traffic manager.
 ## Add a new Traffic Manager Profile
 Traffic manager is a separate service that works at the DNS or network layer 4 level. It needs to be created and configured to point to each of the regions that API Management is now configued to be in.
 
-![alt text](images/apim-tm-overivew.png "Traffic manager overview")
+![alt text](images/apim-tm-overview.png "Traffic manager overview")
+
+Above is the basic overview of the traffic manager profile. The only important thing at this point is its name and therefore FQDN in my case http://jjtest.trafficmanager.net - this will be the endpoint that clients will later call.
+
+Now we need to configure how traffic manager will [route requests](https://learn.microsoft.com/en-us/azure/traffic-manager/traffic-manager-routing-methods). We are here going to choose [Priority](https://learn.microsoft.com/en-us/azure/traffic-manager/traffic-manager-routing-methods#priority-traffic-routing-method)
 
 ![alt text](images/apim-tm-configuration.png "Traffic manager configuration")
+
+In the above, we have configured a low 60 second DNS time to live (TTL). The most important steps are to configure how traffic manager knows the target endpoint is *alive*. This is done by sending an HTTP(S) request to a path and expecting a response. With a service that is not authenticated, an HTTP OK or 200 is the best choice, but for an API that may need to be authenticated, I have chosen getting some 400 series responses - it is best to work with the path and the configuration of API Management to make sure that traffic manager's probes are successful - otherwise it will chose another endpoint - in this case lower in the priority order.
 
 ![alt text](images/apim-tm-endpoints-overview.png "Traffic manager endpoints overview")
 
